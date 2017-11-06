@@ -1,0 +1,124 @@
+% ggf. neuen Benutzer anlegen
+
+\newPerson{AnE}{ % Vorname 1. Buchstabe, Vorname 2. Buchstabe, Nachname 1. Buchstabe
+    Name        = {Anna Example},
+    Amt         = {Schatzmeisterin},
+    Weblink    = {http://example.org}
+}
+
+\begin{Protokoll}{
+        Sitzungsleitung                 = {MiL}, 			% Kürzel wie in Hauptdatei definiert
+        Protokollfuehrer                = {MaG},  			% Kürzel wie in Hauptdatei definiert
+        Sitzungszeit/Datum              = {22.10.2016},   	% \
+        Sitzungszeit/BeginnZeit         = {18:30},			%  > Die Verwendung dieser Variablen 
+        Sitzungszeit/EndeZeit           = {19:22},			% /   wird im Header konfiguriert!
+        Ort                             = {Mumble},			% oder jeder andere Ort
+        Aufzeichnung/URL                = {},				% gerne auch leer lassen
+        Aufzeichnung/Verantwortlicher   = {MiL},		  	% Kürzel wie in Hauptdatei definiert
+        Status                          = {false},			% genehmigt oder nicht (boolean)
+    }
+    
+    \begin{Anwesenheitsliste}
+        \anwesenheit{MiL}{1}								% 1, 0, e(ntschuldigt abwesend)
+        \anwesenheit{MaG}{1}
+        \anwesenheit[Auf der Suche]{AnE}{e}					% in [] Grund angeben oder weglassen (opt. Argument)
+    \end{Anwesenheitsliste}
+    
+    \genehmigeLetztesProtokoll{false}						% boolean
+    
+    
+    \TOP{Tätigkeitsberichte der Vorstandsmitglieder}
+        \begin{description}
+            \item[\getPersonAsWebsiteLink{MiL}:] \     
+            	\begin{itemize}
+				        \item Dies und das
+				\end{itemize}
+            \item[\getPersonAsWebsiteLink{MaG}:]  \     
+            	\begin{itemize}
+				    \item alles mögliche
+				\end{itemize}
+		\end{description}
+    
+    \TOP{Kurzbericht Schatzmeister}
+        \begin{center}
+            \textbf{Haben:} \\
+            \begin{tabular}{|l||r|r|}
+                \hline
+                \textbf{Girokonto:}            & 12\euro         & (12   \euro)     \\
+                \hline
+                \textbf{Summe:}                &  12   \euro     & (12 \euro)        \\
+                \hline \hline
+            \end{tabular} \\
+            \vspace{.5em}
+            \textbf{Soll:} \\
+            \begin{tabular}{|l||r|r|}
+                \hline
+                 \textbf{Schatzmeister (offenes Budget):}
+                &       \euro            & ( \euro)         \\ 
+                \textbf{Kredit (bis Jahresende):}    
+                &    \euro             & ( \euro)         \\
+                \hline
+                \textbf{Summe:}                &     \euro         & ( \euro)        \\
+                \hline \hline
+                \textbf{Kredit XYZ}            &      \euro        & ( \euro) \\
+                \hline
+            \end{tabular}
+        \end{center}
+    
+    \TOP{Kurzbericht Bezirkssekretär}
+        \begin{center}
+            \begin{tabular}{|l||r|}
+                \hline
+                \textbf{Mitglieder gesamt:}             &  12 \\
+                \hline
+                \hline
+            \end{tabular}
+        \end{center}
+    
+    \TOP{Berichte der Beauftragten}
+        \begin{description}
+            \item[A:] \								% Backslash sorgt dafür, dass die Liste in eine
+            										% neue Zeile rutscht; das sieht sauberer aus
+            	\begin{enumerate}
+            		\item langweilig!
+            	
+            	\end{enumerate} 
+        \end{description}
+    
+    
+    \TOP{Berichte aus den Regionen}
+        \begin{description}
+            \item[W\"urzburg:] 
+            	-- nix los --
+            \item[Karlsberg:] 
+            	-- noch weniger los --
+        \end{description}
+    
+    
+    \TOP{Sonstiges}
+    	...
+    
+    \TOP{Diskussionen und Anträge}
+       \Beschluss{
+            Umlaufbeschluss     = {false},
+            Antragsteller       = {MaG},			% Kürzel wie in Hauptdatei definiert
+            Thema               = {Mehr Kaffee!},
+            Gesamtwert          = {1.500},			% €-Zeichen wird automatisch ergänzt
+            Antragstext         = {Wir möchten mehr Kaffee!},
+            Begruendung         = {\
+            	\begin{itemize}
+            		\item Kaffee ist gesund.
+            		\item Kaffe schmeckt gut.
+            	\end{itemize}
+        	},
+            Verantwortlicher    = {MiL},			% Kürzel wie in Hauptdatei definiert
+            Abstimmung          = {MaG/1, MiL/e, AnE/x},
+            										% Kürzel wie in Hauptdatei definiert;
+            										% Werte: 1, 0, e(nthaltung), a(bwesend), 
+            										%        x (noch nicht abgestimmt)
+            Endergebnis         = {x}, 				% Werte: 1, 0, z(urückgezogen), 
+            										%        x (in Abstimmung)
+            Bemerkungen         = {}
+        }
+\end{Protokoll}
+

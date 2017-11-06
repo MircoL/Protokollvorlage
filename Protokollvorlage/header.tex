@@ -1,0 +1,276 @@
+\documentclass[12pt,ngerman,oneside,a4paper]{scrartcl}
+
+\usepackage{xstring}
+\usepackage{xparse}
+\usepackage{eurosym}
+\usepackage[utf8]{inputenc}
+\usepackage[a4paper]{geometry} 
+\geometry{verbose}
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\setlength{\headheight}{75pt}
+\usepackage[ngerman]{babel}
+\usepackage{graphicx}
+\usepackage{url}
+\usepackage[pdfborderstyle={/S/U/W 1}]{hyperref}
+\usepackage{varioref}
+\usepackage{lipsum}
+\usepackage{xspace}
+\usepackage{ifthen}
+\usepackage{hyperref}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{tcolorbox}
+\tcbuselibrary{listings,breakable}
+\usepackage{pgffor}
+
+
+% ------------------------------------------------------------------------------------------
+%                             Kommandos
+% ------------------------------------------------------------------------------------------
+\newcommand{\boxnummer}{\thetcbcounter}
+\newcommand{\keineAntraege}{\emph{Es liegen keine Anträge vor.}}
+\newcommand{\toWebsite}[2]{\ifthenelse{\equal{#1}{}}{#2}{\href{#1}{#2}}}
+\newcommand{\getPerson}[2]{\pgfkeysvalueof{/Protokoll/mitglied/#1/#2}\unskip}
+% 1. opt. Parameter: Mit Amt
+\newcommand{\getPersonAsWebsiteLink}[1]{%
+	\toWebsite{\pgfkeysvalueof{/Protokoll/mitglied/#1/Weblink}}{\pgfkeysvalueof{/Protokoll/mitglied/#1/Name}\unskip}\unskip
+}
+\newcommand{\TOP}[1]{\subsection*{#1}}
+
+\newcounter{vorstandsnummer}
+\newcounter{sitzungsnummer}
+	\setcounter{sitzungsnummer}{1}
+\newcounter{sitzungsnummerVorher}
+	\setcounter{sitzungsnummerVorher}{0}
+\newcounter{antragsnummerAktuelleSitzung}
+	\setcounter{antragsnummerAktuelleSitzung}{1}
+\newcounter{antragsnummerAktuelleSitzungUmlauf}
+	\setcounter{antragsnummerAktuelleSitzungUmlauf}{100}
+\newcounter{antragsnummerAktuelleSitzungSpeicher}
+	\setcounter{antragsnummerAktuelleSitzungSpeicher}{0}
+
+
+% ------------------------------------------------------------------------------------------
+%                             Boxen
+% ------------------------------------------------------------------------------------------
+\newtcolorbox[auto counter,number format=\arabic,list inside=Beschluesse]{beschlussBox}[1]{%
+	colframe=blue!75!black,fonttitle=\bfseries,title={#1},breakable%
+}	
+\newtcolorbox[auto counter,number format=\arabic]{infoBox}{%
+	colframe=orange,fonttitle=\bfseries,breakable%
+}	
+
+
+
+
+% ------------------------------------------------------------------------------------------
+%                             PGF-Keys
+% ------------------------------------------------------------------------------------------
+\pgfqkeys{/Protokoll/grundeinstellungen}{
+	Gliederung/.initial			= {},
+	Vorstandsnummer/.initial	= {},
+}
+\newcommand{\grundeinstellungen}[1]{\pgfqkeys{/Protokoll/grundeinstellungen}{#1}}
+
+% -------------------------------------------------------------------------------------------
+\pgfqkeys{/getPerson}{
+	zeigeAmt/.initial	= {},
+	WebsiteLink/.initial	= {}
+}
+
+\newcommand{\newPerson}[2]{
+	\pgfqkeys{/Protokoll/mitglied/#1}{
+		Name/.initial = {N.\,N.},
+		Amt/.initial = {},
+		Weblink/.initial = {}
+	}
+	\pgfqkeys{/Protokoll/mitglied/#1}{#2}
+}
+
+
+% -------------------------------------------------------------------------------------------	
+
+\pgfqkeys{/Protokoll/beschluss}{
+	Antragsteller/.initial		= {},
+	Thema/.initial				= {},
+	Gesamtwert/.initial			= {},
+	Antragstext/.initial		= {},
+	Begruendung/.initial		= {},
+	Verantwortlicher/.initial	= {},
+	AbstimmungSpeicher/.initial = {},
+	Abstimmung/.code			= {\expandafter\def\expandafter\abstimmung{
+			\foreach \person/\stimme in {#1}{
+				\item \getPerson{\person}{Name}: \dotfill 
+				\IfStrEqCase{\stimme}{
+					{1}{\textcolor{OliveGreen}{dafür}}
+					{0}{\textcolor{red}{dagegen}}
+					{E}{\textcolor{gray}{Enthaltung}}
+					{e}{\textcolor{gray}{Enthaltung}}
+					{A}{\textcolor{blue}{abwesend}}
+					{a}{\textcolor{blue}{abwesend}}%	
+					{x}{\textcolor{orange}{noch nicht abgestimmt}}%	
+					{X}{\textcolor{orange}{noch nicht abgestimmt}}%	
+				}[\textcolor{orange}{\#\#\#Parameter ung\"ultig!\#\#\#}] 
+			}
+		}
+	},
+	Ergebnis/.initial			= {},
+	Endergebnis/.initial		= {},
+	Umlaufbeschluss/.initial	= {},
+	Bemerkungen/.initial 		= {---},
+}
+
+\newcommand{\Beschluss}[1]{
+	
+	\pgfqkeys{/Protokoll/beschluss}{#1}
+	
+	\ifthenelse{\boolean{\pgfkeysvalueof{/Protokoll/beschluss/Umlaufbeschluss}}}
+			{
+				\setcounter{antragsnummerAktuelleSitzungSpeicher}{\value{antragsnummerAktuelleSitzungUmlauf}}%
+				\stepcounter{antragsnummerAktuelleSitzungUmlauf}
+			}%
+			{
+				\setcounter{antragsnummerAktuelleSitzungSpeicher}{\value{antragsnummerAktuelleSitzung}}%
+				\stepcounter{antragsnummerAktuelleSitzung}
+			}
+
+	\begin{beschlussBox}{Antrag %
+			\Roman{vorstandsnummer}--\thesitzungsnummer--\theantragsnummerAktuelleSitzungSpeicher: %
+			\pgfkeysvalueof{/Protokoll/beschluss/Thema}}
+		\ifthenelse{\boolean{\pgfkeysvalueof{/Protokoll/beschluss/Umlaufbeschluss}}}
+			{\begin{center}\bf --- Umlaufbeschluss ---\end{center}}
+			{}
+		\begin{description}
+			\item[Antragsteller:]				\getPersonAsWebsiteLink{\pgfkeysvalueof{/Protokoll/beschluss/Antragsteller}}
+			\item[Verantwortlicher:]			\ifthenelse{\equal{\pgfkeysvalueof{/Protokoll/beschluss/Verantwortlicher}}{--} \OR \equal{\pgfkeysvalueof{/Protokoll/beschluss/Verantwortlicher}}{---}}%
+													{---}%
+													{\getPersonAsWebsiteLink{\pgfkeysvalueof{/Protokoll/beschluss/Verantwortlicher}}}%
+			\item[Gesamtwert:]					\pgfkeysvalueof{/Protokoll/beschluss/Gesamtwert}\,\euro
+			\item[Antragstext:]					\pgfkeysvalueof{/Protokoll/beschluss/Antragstext}
+			\item[Begründung:]					\pgfkeysvalueof{/Protokoll/beschluss/Begruendung}
+			\item[Ergebnis:] \
+											\begin{itemize}
+												\abstimmung
+											\end{itemize}
+											\IfStrEqCase{\pgfkeysvalueof{/Protokoll/beschluss/Endergebnis}}{%
+												{1}{\textcolor{OliveGreen}{Der Antrag wurde angenommen.}}%
+												{0}{\textcolor{red}{Der Antrag wurde abgelehnt.}}%
+												{Z}{\textcolor{blue}{Der Antrag wurde zurückgezogen.}}%
+												{z}{\textcolor{blue}{Der Antrag wurde zurückgezogen.}}%
+												{x}{\textcolor{orange}{Der Antrag ist noch in Abstimmung.}}%
+												{X}{\textcolor{orange}{Der Antrag ist noch in Abstimmung.}}%
+											}[\textcolor{red}{\#\#\#Parameter ung\"ultig!\#\#\#}] 
+			\item[Bemerkungen:]					\pgfkeysvalueof{/Protokoll/beschluss/Bemerkungen}
+		\end{description}
+	\end{beschlussBox}
+}
+
+\newcommand{\genehmigeLetztesProtokoll}[1]{%
+	\TOP{Genehmigung des Protokolls der letzten Sitzung}
+		\ifthenelse{\boolean{#1}}%
+			{\textcolor{OliveGreen}{Das \hyperlink{s\thesitzungsnummerVorher}{Protokoll der letzten Sitzung} wurde genehmigt.}}%
+			{\textcolor{red}{Das \hyperlink{s\thesitzungsnummerVorher}{Protokoll der letzten Sitzung} wurde nicht genehmigt.}}
+}
+
+% -------------------------------------------------------------------------------------------
+
+\pgfqkeys{/Protokoll}{
+	Sitzungsleitung/.initial		 		= {},
+	Protokollfuehrer/.initial		 		= {},
+	Sitzungszeit/Datum/.initial 	 		= {},
+	Sitzungszeit/BeginnZeit/.initial 		= {},
+	Ort/.initial							= {},
+	Sitzungszeit/EndeZeit/.initial	 		= {},
+	Aufzeichnung/URL/.initial				= {},
+	Aufzeichnung/Verantwortlicher/.initial 	= {},
+	Status/.initial					 		= {},
+}
+
+\newenvironment{Protokoll}[1]{
+	% Reset der Antragsnummern
+	
+	\pgfqkeys{/Protokoll}{#1}
+	\newpage
+	\hypertarget{s\thesitzungsnummer}{}
+	\section*{\thesitzungsnummer. Vorstandssitzung}
+	\addcontentsline{toc}{section}{\thesitzungsnummer. Vorstandssitzung}
+	% Counter der Anträge zurücksetzen
+	\setcounter{antragsnummerAktuelleSitzung}{1}
+	\begin{infoBox}
+		\begin{tabular}{lp{6cm}}
+			\textbf{Sitzungsleitung:}			& \getPersonAsWebsiteLink{\pgfkeysvalueof{/Protokoll/Sitzungsleitung}}			\\
+			\textbf{Protokollführer:}			& \getPersonAsWebsiteLink{\pgfkeysvalueof{/Protokoll/Protokollfuehrer}}		\\
+			\textbf{Sitzungsdatum und -zeit:} 	& \pgfkeysvalueof{/Protokoll/Sitzungszeit/Datum}, \pgfkeysvalueof{/Protokoll/Sitzungszeit/BeginnZeit}--\pgfkeysvalueof{/Protokoll/Sitzungszeit/EndeZeit}\,Uhr			 \\
+			\textbf{Verantwortlich für Aufzeichnung:}
+												& \getPersonAsWebsiteLink{\pgfkeysvalueof{/Protokoll/Aufzeichnung/Verantwortlicher}}		\\
+			\textbf{Aufzeichnung:}				& \ifthenelse{\equal{\pgfkeysvalueof{/Protokoll/Aufzeichnung/URL}}{}}
+														{\emph{Es liegt (noch) keine Aufzeichnung vor.}}
+														{\href{\pgfkeysvalueof{/Protokoll/Aufzeichnung/URL}}{Link zur Aufzeichnung}}\\
+			\textbf{Ort:}						& \pgfkeysvalueof{/Protokoll/Ort}\\
+			\textbf{Status:}					& \ifthenelse{\boolean{\pgfkeysvalueof{/Protokoll/Status}}}
+			{\textcolor{OliveGreen}{Das Protokoll wurde genehmigt. Än\-de\-run\-gen -- mit Ausnahme redaktioneller Korrekturen -- be\-dür\-fen eines Vorstandsbeschlusses.}}
+			{\textcolor{red}{Dieses Protokoll ist noch nicht genehmigt.}}
+		\end{tabular}
+	\end{infoBox}
+}{
+	\TOP{Schließen der Sitzung}
+	Die Sitzung wird um \pgfkeysvalueof{/Protokoll/Sitzungszeit/EndeZeit}\,Uhr geschlossen.
+	
+	\newpage
+	\setcounter{antragsnummerAktuelleSitzungUmlauf}{100}
+	\setcounter{antragsnummerAktuelleSitzungSpeicher}{0}
+	\stepcounter{sitzungsnummer}
+	\stepcounter{sitzungsnummerVorher}	
+}
+
+\newenvironment{Anwesenheitsliste}{%
+	\subsection*{An- und Abwesenheit}
+	\begin{itemize} 
+	\newcommand{\anwesenheit}[3][]{%
+		\item \getPersonAsWebsiteLink{##2}\ifthenelse{\equal{\pgfkeysvalueof{/Protokoll/mitglied/##2/Amt}}{}}{}{\unskip, \pgfkeysvalueof{/Protokoll/mitglied/##2/Amt}}\unskip:
+		\IfStrEqCase{##3}{
+			{1}{\textcolor{OliveGreen}{anwesend}}
+			{0}{\textcolor{red}{abwesend}}
+			{E}{\textcolor{gray}{abwesend, entschuldigt}}
+			{e}{\textcolor{gray}{abwesend, entschuldigt}}%
+		}[\textcolor{red}{\#\#\#Parameter ung\"ultig!\#\#\#}] 
+		\ifthenelse{\equal{##1}{}}{}{(##1)}
+	}
+}{
+	\end{itemize}
+}
+
+
+% ------------------------------------------------------------------------------------------
+%                     Dokumentenbeginn und -ende setzen
+% ------------------------------------------------------------------------------------------
+\AtBeginDocument{
+	\setcounter{vorstandsnummer}{\pgfkeysvalueof{/Protokoll/grundeinstellungen/Vorstandsnummer}}
+	\title{Protokolle des \Roman{vorstandsnummer}. Vorstands\\\pgfkeysvalueof{/Protokoll/grundeinstellungen/Gliederung}}
+	\maketitle
+	\begin{center}
+		\includegraphics[width=.4\textwidth]{logo}
+	\end{center}
+	
+	\newpage
+	\thispagestyle{empty}
+	\tableofcontents
+	\newpage
+	
+	\lhead{Liste der Beschlüsse}
+	\addcontentsline{toc}{section}{Liste der Beschlüsse}
+	
+	\tcblistof[\section*]{Beschluesse}{Liste der Beschlüsse}
+	\newpage	
+	
+	\rhead{\includegraphics[width=.1\textwidth]{logo}}
+
+	\lhead{\thesitzungsnummer. Vorstandssitzung}
+	\cfoot{-- \thepage --}
+	\global\long\def\headrulewidth{0.4pt}
+	\global\long\def\footrulewidth{0.4pt}
+	\renewcommand{\thesection}{\texttt{\Roman{section}}} 
+	\setcounter{antragsnummerAktuelleSitzungUmlauf}{100}
+	\setcounter{antragsnummerAktuelleSitzungSpeicher}{0}
+}
+\AtEndDocument{}
