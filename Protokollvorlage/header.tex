@@ -199,10 +199,11 @@
 	\begin{infoBox}
 		\begin{tabular}{lp{6cm}}
 			\textbf{Sitzungsleitung:}			& \getPersonAsWebsiteLink{\pgfkeysvalueof{/Protokoll/Sitzungsleitung}}			\\
-			\textbf{Protokollführer:}			& \getPersonAsWebsiteLink{\pgfkeysvalueof{/Protokoll/Protokollfuehrer}}		\\
+			\textbf{Protokollführer:}			& \getPersonAsWebsiteLink{\pgfkeysvalueof{/Protokoll/Protokollfuehrer}}		    \\
 			\textbf{Sitzungsdatum und -zeit:} 	& \pgfkeysvalueof{/Protokoll/Sitzungszeit/Datum}, \pgfkeysvalueof{/Protokoll/Sitzungszeit/BeginnZeit}--\pgfkeysvalueof{/Protokoll/Sitzungszeit/EndeZeit}\,Uhr			 \\
-			\textbf{Verantwortlich für Aufzeichnung:}
-												& \getPersonAsWebsiteLink{\pgfkeysvalueof{/Protokoll/Aufzeichnung/Verantwortlicher}}		\\
+			\ifthenelse{\equal{\pgfkeysvalueof{/Protokoll/Aufzeichnung/Verantwortlicher}}{}}{}{
+				\textbf{Verantwortlich für Aufzeichnung:}
+												& \getPersonAsWebsiteLink{\pgfkeysvalueof{/Protokoll/Aufzeichnung/Verantwortlicher}}\\}
 			\textbf{Aufzeichnung:}				& \ifthenelse{\equal{\pgfkeysvalueof{/Protokoll/Aufzeichnung/URL}}{}}
 														{\emph{Es liegt (noch) keine Aufzeichnung vor.}}
 														{\href{\pgfkeysvalueof{/Protokoll/Aufzeichnung/URL}}{Link zur Aufzeichnung}}\\
